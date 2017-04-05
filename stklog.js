@@ -23,51 +23,76 @@
         for (var i = 0; i < handled_method.length; i++) {
             __override_method(handled_method[i]);
         }
-        setInterval(__send_all, 5000);
+        setInterval(__send_stacks, 5000);
+        setInterval(__send_logs, 7500);
         window.addEventListener("beforeunload", __send_all);
     };
+    window.stklog_get_request_id = function() { return __request_ids[__request_ids.length - 1]; }
 
     function __send_all() {
+        __send_stacks();
+        __send_logs();
+    }
+
+    function __send_stacks() {
         if (__cache.stacks.length > 0) {
-            __send("/stacks", __cache.stacks.slice());
-            __cache.stacks = [];
-        }
-        if (__cache.logs.length > 0) {
-            __send("/logs", __cache.logs.slice());
-            __cache.logs = [];
+            __send("/stacks", __cache.stacks.slice(), function(err, data) {
+                if (err) {
+                    error_print("POST on " + __url + endpoint + " failed with answer :");
+                    error_print(err);
+                }
+                __cache.stacks = [];
+            });
         }
     }
 
-    function __send(endpoint, array) {
+    function __send_logs() {
+        if (__cache.logs.length > 0) {
+            __send("/logs", __cache.logs.slice(), function(err, data) {
+                __cache.logs = [];
+                if (err) {
+                    error_print("POST on " + __url + endpoint + " failed with answer :");
+                    error_print(err);
+                }
+            });
+        }
+    }
+
+    function __send(endpoint, array, done) {
         var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-            if (this.readyState == XMLHttpRequest.DONE && this.status != 200) {
-                error_print("POST on " + __url + endpoint + " failed with answer :");
-                error_print(xhttp.responseText);
-            }
-        };
         xhttp.open("POST", __url + endpoint, true);
+        xhttp.onerror = function() {
+            done(xhttp.response);
+        };
+        xhttp.onload = function() {
+            done(null, xhttp.response);
+        };
         xhttp.setRequestHeader("Content-Type", "application/json");
         xhttp.setRequestHeader("Stklog-Project-Key", project_key);
         xhttp.send(JSON.stringify(array));
     }
 
+    function __parse_stacktrace(error) {
+        var array_error = error.stack.match(/[^\r\n]+/g);
+        var last_trace = array_error[array_error.length - 1];
+        var regExp = /\(([^)]+)\)/;
+        var matches = regExp.exec(last_trace);
+        return matches[1];
+    }
+
     function __parse_line_file(error) {
         var CHROME_IE_STACK_REGEXP = /^\s*at .*(\S+\:\d+|\(native\))/m;
         var obj = { "filename": "", "line": 0 };
-
         if (error.stack && error.stack.match(CHROME_IE_STACK_REGEXP)) {
-            var array_error = error.stack.match(/[^\r\n]+/g);
-            var last_trace = array_error[array_error.length - 1];
-            var array = last_trace.replace("at file://", "").trim().split(":");
-            obj.filename = array[0];
-            obj.line = parseInt(array[1]);
+            var last_trace = __parse_stacktrace(error);
+            var array = last_trace.trim().split(":");
+            obj.filename = array[0] + ":" + array[1];
+            obj.line = parseInt(array[2]);
         } else if (error.stack) {
-            var array_error = error.stack.match(/[^\r\n]+/g);
-            var last_trace = array_error[array_error.length - 1];
-            var array = last_trace.replace("global code@file://", "").replace("@file://", "").trim().split(":");
-            obj.filename = array[0];
-            obj.line = parseInt(array[1]);
+            var last_trace = __parse_stacktrace(error);
+            var array = last_trace.trim().split(":");
+            obj.filename = array[0] + ":" + array[1];
+            obj.line = parseInt(array[2]);
         }
         return obj;
     }
@@ -91,8 +116,6 @@
             }
         };
     }
-
-    function stklog_get_request_id() { return __request_ids[__request_ids.length - 1]; }
 
     function __get_parent_request_id() { return (__request_ids.length > 1) ? __request_ids[__request_ids.length - 2] : undefined; }
 
