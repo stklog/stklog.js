@@ -126,9 +126,12 @@
             "request_id": stklog_get_request_id(),
             "timestamp": current_date.toISOString(),
             "line": meta.line,
-            "file": meta.filename,
-            "hostname": (location.hostname.length > 0) ? location.hostname : "null"
+            "file": meta.filename
         };
+        if (location.hostname.length > 0) {
+            stack.hostnname = location.hostname
+        }
+
         if (extra && !isArray(extra) && isObject(extra)) {
             stack.extra = extra;
         }
