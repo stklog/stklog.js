@@ -68,7 +68,7 @@
             done(null, xhttp.response);
         };
         xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.setRequestHeader("Stklog-Project-Key", project_key);
+        xhttp.setRequestHeader("X-Stklog-Project-Key", project_key);
         xhttp.send(JSON.stringify(array));
     }
 
