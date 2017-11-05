@@ -117,13 +117,13 @@
         };
     }
 
-    function __get_parent_request_id() { return (__request_ids.length > 1) ? __request_ids[__request_ids.length - 2] : undefined; }
+    function __get_parent_id() { return (__request_ids.length > 1) ? __request_ids[__request_ids.length - 2] : undefined; }
 
     function __create_stack(name, extra) {
         var meta = __parse_line_file(new Error());
         var current_date = new Date();
         var stack = {
-            "request_id": stklog_get_request_id(),
+            "id": stklog_get_request_id(),
             "timestamp": current_date.toISOString(),
             "line": meta.line,
             "file": meta.filename
@@ -138,9 +138,9 @@
         if (typeof name != "undefined") {
             stack.name = name;
         }
-        var parent_request_id = __get_parent_request_id();
-        if (typeof parent_request_id != "undefined") {
-            stack.parent_request_id = parent_request_id;
+        var parent_id = __get_parent_id();
+        if (typeof parent_id != "undefined") {
+            stack.parent_id = parent_id;
         }
         __cache.stacks.push(stack);
     }
@@ -154,7 +154,7 @@
             "timestamp": current_date.toISOString(),
             "line": meta.line,
             "file": meta.filename,
-            "request_id": stklog_get_request_id(),
+            "stack_id": stklog_get_request_id(),
         };
         if (extra && !isArray(extra) && isObject(extra)) {
             log.extra = extra;
