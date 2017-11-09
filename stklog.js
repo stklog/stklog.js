@@ -1,5 +1,5 @@
 (function() {
-    var __request_ids = [__generate__UUID()];
+    var __ids = [__generate__UUID()];
     var __cache = { "logs": [], "stacks": [] };
     var __url = "https://api.stklog.io";
     var error_print = undefined;
@@ -27,7 +27,7 @@
         setInterval(__send_logs, 7500);
         window.addEventListener("beforeunload", __send_all);
     };
-    window.stklog_get_request_id = function() { return __request_ids[__request_ids.length - 1]; }
+    window.stklog_get_id = function() { return __ids[__ids.length - 1]; }
 
     function __send_all() {
         __send_stacks();
@@ -102,7 +102,7 @@
         console.group = function() {
             original_group.apply(window, arguments);
             var args = Array.prototype.slice.call(arguments);
-            __request_ids.push(__generate__UUID());
+            __ids.push(__generate__UUID());
             __create_stack(args.shift(), args.shift());
         };
     }
@@ -111,19 +111,19 @@
         var original_group_end = console.groupEnd;
         console.groupEnd = function() {
             original_group_end.apply(window, arguments);
-            if (__request_ids.length > 1) {
-                __request_ids.pop();
+            if (__ids.length > 1) {
+                __ids.pop();
             }
         };
     }
 
-    function __get_parent_id() { return (__request_ids.length > 1) ? __request_ids[__request_ids.length - 2] : undefined; }
+    function __get_parent_id() { return (__ids.length > 1) ? __ids[__ids.length - 2] : undefined; }
 
     function __create_stack(name, extra) {
         var meta = __parse_line_file(new Error());
         var current_date = new Date();
         var stack = {
-            "id": stklog_get_request_id(),
+            "id": stklog_get_id(),
             "timestamp": current_date.toISOString(),
             "line": meta.line,
             "file": meta.filename
@@ -154,7 +154,7 @@
             "timestamp": current_date.toISOString(),
             "line": meta.line,
             "file": meta.filename,
-            "stack_id": stklog_get_request_id(),
+            "stack_id": stklog_get_id(),
         };
         if (extra && !isArray(extra) && isObject(extra)) {
             log.extra = extra;

@@ -76,6 +76,6 @@ In that specific case, it will send the warning log without extra parameter, but
 ## Miscellaneous
 You can get the current stack's request_id by calling : 
 
-```stklog_get_request_id()```
+```stklog_get_id()```
 
 Really useful if you want to also log your backend request associated to your current context. You just have to pass this `request_id` (usually as a header) to your API during your requests and then use it as a request_id when you define your stack on the backend side.
