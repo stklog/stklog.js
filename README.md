@@ -3,6 +3,8 @@
 Easily send your javascript logs to [stklog.io](https://stklog.io).
 Stklog.js proxy the standard `console.*` methods to send automatically your logs to stklog.io. 
 
+## Dependency
+We embed [stacktrace.js](https://github.com/stacktracejs/stacktrace.js) as a helper to make sure you log relevant informations automatically.
 ## Usage
 It's really simple, you have to call one stklog init function to give the library your project key, and then you can use the relevant console methods.
 
